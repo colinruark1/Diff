@@ -12,7 +12,7 @@ import java.util.*;
 
 public class Diff {
     
-    
+    //left to right recursive method to detect similar characters
     public static String inCommon(String a, String b) {
         if(a.length() > 0 && b.length() > 0) {
             if(b.indexOf(a.charAt(0)) != -1) {
@@ -24,7 +24,8 @@ public class Diff {
         }
         return "";
     }
-    
+
+    //right to left recursive
     public static String inCommonRev(String a, String b) {
         if(a.length() > 0 && b.length() > 0) {
             if(b.lastIndexOf(a.charAt(a.length() - 1)) != -1) {
@@ -36,7 +37,8 @@ public class Diff {
         }
         return "";
     }
-    
+
+    //finds all characters shared by all four versions of the inCommon call
     public static Set<Character> toSet(String[] commons) {
         Set<Character> allChars = new HashSet<>();
         String base = commons[0];
@@ -45,7 +47,9 @@ public class Diff {
             inAll = true;
             for(int i = 1; i < commons.length; i++) {
                 if(commons[i].indexOf(base.charAt(j)) == -1) {
-                      inAll = false;
+                    inAll = false;
+                    break //still worst case O(m * n) but increases efficiency in anything besides worst case
+                    //room for improvement: setting base to the shortest string so that m is as small as possible
                 }
             }
             if(inAll) {
@@ -54,28 +58,16 @@ public class Diff {
         }
         return allChars;
     }
-    
-    public static String fullRun(String input) {
-        String first, second;
-        first = input.substring(0, input.indexOf(" "));
-        second = input.substring(input.indexOf(" ") + 1);
-        String[] commons = new String[]{inCommon(first, second), inCommon(second, first), inCommonRev(first, second), inCommonRev(second, first)};
-        String ans = "";
-        for(char c: alphabetize(toSet(commons))) {
-            ans += c;
-        }
-        return ans;
-    }
-    
-    public static List<Character> alphabetize(Set<Character> chars) {
-        int[] count = new int[26]; // Adjust to 52 if you need case-sensitive sorting
-        
-        // Counting occurrences
-        for (char c : chars) {
-            count[c - 'a']++; // Map 'a' to 0, 'b' to 1, ..., 'z' to 25
-        }
 
-        // Creating a sorted list of characters
+    //rewriting the set so that all characters appear alphabetized in a list
+    //Heavily inspired by ChatGPT
+    public static List<Character> alphabetize(Set<Character> chars) {
+        int[] count = new int[26]; 
+        
+        for (char c : chars) {
+            count[c - 'a']++;
+        }
+        
         List<Character> sortedChars = new ArrayList<>();
         for (int i = 0; i < count.length; i++) {
             if (count[i] > 0) {
@@ -85,9 +77,27 @@ public class Diff {
         return sortedChars;
     }
     
+    public static String fullRun(String input) {
+        String first, second;
+        //separates the one String into two strings for simpler implementation
+        first = input.substring(0, input.indexOf(" "));
+        second = input.substring(input.indexOf(" ") + 1);
+
+        //creates the four versions of the String inputted into toSet()
+        String[] commons = new String[]{inCommon(first, second), inCommon(second, first), inCommonRev(first, second), inCommonRev(second, first)};
+        
+        String ans = "";
+        for(char c: alphabetize(toSet(commons))) {
+            //converts list into String
+            ans += c;
+        }
+        return ans;
+    }
+    
     
     public static void main(String[] args) {
-        
+
+        //manually inputs all examples
         System.out.println(fullRun("abcddef vdfaddwf"));
         
         System.out.println(fullRun("friends afraid"));
